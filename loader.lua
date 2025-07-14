@@ -17,7 +17,7 @@ local function downloadFile(path, func)
     local commit = isfile('Venyx/profiles/commit.txt') and readfile('Venyx/profiles/commit.txt') or 'main'
 	if not isfile(path) then
 		local suc, res = pcall(function()
-			return game:HttpGet('https://raw.githubusercontent.com/0khs/Sambal-Msin/'..commit..'/'..select(1, path:gsub('Venyx/', '')), true)
+			return game:HttpGet('https://raw.githubusercontent.com/0khs/venyx/'..commit..'/'..select(1, path:gsub('Venyx/', '')), true)
 		end)
 		if not suc or res == '404: Not Found' then
             return nil
@@ -51,7 +51,7 @@ end
 
 if not shared.VenyxDeveloper then
 	local suc, subbed = pcall(function()
-		return game:HttpGet('https://github.com/0khs/Sambal-Msin')
+		return game:HttpGet('https://github.com/0khs/venyx')
 	end)
     if suc and subbed then
 	    local commit = subbed:find('currentOid')
@@ -226,7 +226,7 @@ function library:loadGameConfigs()
     if downloadFile(gameConfigPath) then
         executeFile(gameConfigPath)
     else
-        self:Notify("Configuration Notice", "This game has no specific config.", 7)
+        self:Notify("Configuration Notice", "This game has no config.", 7)
     end
 end
 
