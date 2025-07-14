@@ -3,12 +3,8 @@ local Venyx = shared.Venyx.instance
 local HomeTab = Venyx:addTab("Home", "9405923687")
 local WelcomeSection = HomeTab:addSection("Welcome")
 
-WelcomeSection:addLabel("Welcome to the universal script!")
-WelcomeSection:addLabel("This GUI is powered by Venyx.")
+WelcomeSection:addLabel("Subscribe to @Gvup8 on Youtube!")
 
-WelcomeSection:addButton("Show Notification", function()
-    Venyx:Notify("Hello!", "This is a test notification.", 5)
-end)
 
 local SettingsTab = Venyx:addTab("Settings", "9405931578")
 local ThemeSection = SettingsTab:addSection("Theme Customization")
