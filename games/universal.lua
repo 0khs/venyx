@@ -39,6 +39,3 @@ ThemeSection:addColorPicker("Dark Contrast", defaultThemes.DarkContrast, functio
     Venyx:setTheme("DarkContrast", color)
 end)
 
-ThemeSection:addColorPicker("Text Color", defaultThemes.TextColor, function(color)
-    Venyx:setTheme("TextColor", color)
-end)
