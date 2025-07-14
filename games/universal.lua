@@ -4,7 +4,7 @@ local HomeTab = Venyx:addTab("Home", "9405923687")
 local WelcomeSection = HomeTab:addSection("Welcome")
 
 WelcomeSection:addLabel("Subscribe to @Gvup8 on Youtube!")
-WelcomeSection:addLabel("If you found any bug in this gui lib, feel free to comment on one of my video!")
+WelcomeSection:addLabel("If you found any bug in this script, feel free to comment on one of my video!")
 
 
 local SettingsTab = Venyx:addTab("Settings", "9405931578")
