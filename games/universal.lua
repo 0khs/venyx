@@ -1,6 +1,6 @@
 local Venyx = shared.Venyx.instance
 
-local HomeTab = Venyx:addTab("Home", "4492476121")
+local HomeTab = Venyx:addTab("Home", "9405923687")
 local WelcomeSection = HomeTab:addSection("Welcome")
 
 WelcomeSection:addLabel("Welcome to the universal script!")
@@ -10,7 +10,7 @@ WelcomeSection:addButton("Show Notification", function()
     Venyx:Notify("Hello!", "This is a test notification.", 5)
 end)
 
-local SettingsTab = Venyx:addTab("Settings", "4034483357")
+local SettingsTab = Venyx:addTab("Settings", "9405931578")
 local ThemeSection = SettingsTab:addSection("Theme Customization")
 
 local defaultThemes = {
