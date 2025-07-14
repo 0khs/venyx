@@ -750,12 +750,14 @@ function section:addLabel(text)
 		Name = "Label",
 		Parent = self.container,
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 0, 14),
+		Size = UDim2.new(1, 0, 0, 0),
 		Font = Enum.Font.Gotham,
 		Text = text,
 		TextColor3 = themes.TextColor,
 		TextSize = 12,
-		TextXAlignment = Enum.TextXAlignment.Left
+		TextXAlignment = Enum.TextXAlignment.Left,
+		TextWrapped = true,
+		AutomaticSize = Enum.AutomaticSize.Y
 	})
 
 	table.insert(self.modules, label)
@@ -1704,10 +1706,10 @@ end
 
 function section:Resize(smooth)
 	local padding = self.container.UIListLayout.Padding.Offset
-	local totalHeight = self.container.Title.Size.Y.Offset + (padding * 2)
+	local totalHeight = self.container.Title.AbsoluteSize.Y + (padding * 2)
 
 	for i, module in pairs(self.modules) do
-		totalHeight = totalHeight + module.Size.Y.Offset + padding
+		totalHeight = totalHeight + module.AbsoluteSize.Y + padding
 	end
 
 	local newSize = UDim2.new(1, -10, 0, totalHeight)
