@@ -1,9 +1,5 @@
 local Venyx = shared.Venyx.instance
 
-if not Venyx then
-    return
-end
-
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
