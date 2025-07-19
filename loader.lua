@@ -223,10 +223,8 @@ function library:loadGameConfigs()
         executeFile(universalConfigPath)
     end
 
-    if downloadFile(gameConfigPath) then
-        executeFile(gameConfigPath)
-    else
-        self:Notify("Configuration Notice", "This game has no config.", 7)
+    if not downloadFile(gameConfigPath) or not executeFile(gameConfigPath) then
+        self:Notify("Configuration Notice", "This game has no config or it failed to load.", 7)
     end
 end
 
