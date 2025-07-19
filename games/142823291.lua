@@ -1,12 +1,20 @@
 local Venyx = shared.Venyx.instance
 
+if not Venyx then
+    return
+end
+
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 
 local localplayer = Players.LocalPlayer
 local claimedCoins = {}
+local lastMap = nil
 local coinAutoCollect = false
+local espEnabled = false
+local espHighlights = {}
+
 local shootOffset = 0.2
 local offsetToPingMult = 1.05
 
@@ -65,59 +73,117 @@ local function getClosestModelToPlayer(player, models)
     return closestModel
 end
 
-local function getPredictedPosition(player, shootOffset)
+local function getPredictedPosition(player, shootOffsetValue)
     local char = player.Character
-    if not char then 
-        Venyx:Notify("Error", "No character to predict position.", 5)
-        return 
+    if not char then
+        Venyx:Notify("Venyx", "No character to predict position.", 5)
+        return
     end
 
     local playerHRP = char:FindFirstChild("UpperTorso")
     local playerHum = char:FindFirstChild("Humanoid")
     if not playerHRP or not playerHum then
-        return Vector3.new(0,0,0)
+        return Vector3.new(0, 0, 0)
     end
 
     local playerPosition = playerHRP.Position
     local velocity = playerHRP.AssemblyLinearVelocity
     local playerMoveDirection = playerHum.MoveDirection
-    
-    local predictedPosition = playerHRP.Position + ((velocity * Vector3.new(0, 0.5, 0))) * (shootOffset / 15) + playerMoveDirection * shootOffset
+
+    local predictedPosition = playerHRP.Position + ((velocity * Vector3.new(0, 0.5, 0))) * (shootOffsetValue / 15) + playerMoveDirection * shootOffsetValue
     predictedPosition = predictedPosition * (((localplayer:GetNetworkPing() * 1000) * ((offsetToPingMult - 1) * 0.01)) + 1)
-    
+
     return predictedPosition
+end
+
+local function updatePlayerESP(player)
+    local character = player.Character
+    local highlight = espHighlights[player]
+
+    if not character or not espEnabled then
+        if highlight then
+            highlight.Parent = nil
+        end
+        return
+    end
+
+    if not highlight then
+        highlight = Instance.new("Highlight")
+        highlight.Name = "Venyx_ESP_Highlight"
+        highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        highlight.OutlineTransparency = 0
+        highlight.FillTransparency = 0.5
+        espHighlights[player] = highlight
+    end
+
+    local role = getPlayerRole(player)
+    if role == "Murderer" then
+        highlight.FillColor = Color3.fromRGB(255, 25, 25)
+        highlight.OutlineColor = Color3.fromRGB(255, 25, 25)
+    elseif role == "Sheriff" then
+        highlight.FillColor = Color3.fromRGB(25, 118, 210)
+        highlight.OutlineColor = Color3.fromRGB(25, 118, 210)
+    else
+        highlight.FillColor = Color3.fromRGB(0, 200, 83)
+        highlight.OutlineColor = Color3.fromRGB(0, 200, 83)
+    end
+
+    highlight.Parent = character
 end
 
 task.spawn(function()
     while task.wait(0.1) do
         if not coinAutoCollect then continue end
         local currentMap = getMap()
-        if currentMap and currentMap:FindFirstChild("CoinContainer") and #currentMap:FindFirstChild("CoinContainer"):GetChildren() > 1 then
-            local character = localplayer.Character
-            local hrp = character and character:FindFirstChild("HumanoidRootPart")
-            if not hrp then continue end
-            
-            local closestCoin = getClosestModelToPlayer(localplayer, currentMap:FindFirstChild("CoinContainer"):GetChildren())
-            if closestCoin then
-                local distance = (hrp.Position - closestCoin.Position).Magnitude
-                local toclosestcoin = TweenService:Create(hrp, TweenInfo.new(distance * 0.05, Enum.EasingStyle.Linear), {
-                    CFrame = CFrame.new(closestCoin.Position)
-                })
-                toclosestcoin:Play()
-                toclosestcoin.Completed:Wait()
-                task.wait(0.1)
-                claimedCoins[closestCoin] = true
+        if currentMap then
+            if lastMap ~= currentMap then
+                lastMap = currentMap
+                claimedCoins = {}
+            end
+
+            local coinContainer = currentMap:FindFirstChild("CoinContainer")
+            if coinContainer and #coinContainer:GetChildren() > 1 then
+                local character = localplayer.Character
+                local hrp = character and character:FindFirstChild("HumanoidRootPart")
+                if not hrp then continue end
+
+                local closestCoin = getClosestModelToPlayer(localplayer, coinContainer:GetChildren())
+                if closestCoin then
+                    local distance = (hrp.Position - closestCoin.Position).Magnitude
+                    local toclosestcoin = TweenService:Create(hrp, TweenInfo.new(distance * 0.05, Enum.EasingStyle.Linear), {
+                        CFrame = CFrame.new(closestCoin.Position)
+                    })
+                    toclosestcoin:Play()
+                    toclosestcoin.Completed:Wait()
+                    task.wait(0.1)
+                    claimedCoins[closestCoin] = true
+                end
             end
         end
     end
 end)
 
+task.spawn(function()
+    while task.wait(1) do
+        if not espEnabled then continue end
+        for _, player in ipairs(Players:GetPlayers()) do
+            updatePlayerESP(player)
+        end
+    end
+end)
 
-local mm2Tab = Venyx:addTab("MM2")
+Players.PlayerRemoving:Connect(function(player)
+    if espHighlights[player] then
+        espHighlights[player]:Destroy()
+        espHighlights[player] = nil
+    end
+end)
+
+local mm2Tab = Venyx:addTab("Main")
 
 local combatSection = mm2Tab:addSection("Combat")
 local automationSection = mm2Tab:addSection("Automation")
-local funSection = mm2Tab:addSection("Fun")
+local visualsSection = mm2Tab:addSection("Visuals")
 
 combatSection:addButton("Shoot Target", function()
     local target
@@ -128,12 +194,12 @@ combatSection:addButton("Shoot Target", function()
     elseif localRole == "Murderer" then
         target = findRole("Sheriff")
     else
-        Venyx:Notify("Info", "You are not the Sheriff or Murderer.", 5)
+        Venyx:Notify("Venyx", "You are not the Sheriff or Murderer.", 5)
         return
     end
 
     if not target then
-        Venyx:Notify("Info", "No valid target found.", 5)
+        Venyx:Notify("Venyx", "No valid target found.", 5)
         return
     end
 
@@ -144,25 +210,25 @@ combatSection:addButton("Shoot Target", function()
             hum:EquipTool(backpack:FindFirstChild("Gun"))
             task.wait(0.1)
         else
-            Venyx:Notify("Error", "You don't have the gun.", 5)
+            Venyx:Notify("Venyx", "You don't have the gun.", 5)
             return
         end
     end
-    
+
     local gun = localplayer.Character:FindFirstChild("Gun")
     if not gun or not gun:FindFirstChild("KnifeLocal") or not gun.KnifeLocal:FindFirstChild("CreateBeam") then
-        Venyx:Notify("Error", "Gun structure not found.", 5)
+        Venyx:Notify("Venyx", "Gun structure not found.", 5)
         return
     end
 
     local targetHRP = target.Character and target.Character:FindFirstChild("HumanoidRootPart")
     if not targetHRP then
-        Venyx:Notify("Error", "Could not find the target's HumanoidRootPart.", 5)
+        Venyx:Notify("Venyx", "Could not find the target's HumanoidRootPart.", 5)
         return
     end
 
     local predictedPosition = getPredictedPosition(target, shootOffset)
-    
+
     pcall(function()
         gun.KnifeLocal.CreateBeam.RemoteFunction:InvokeServer(1, predictedPosition, "AH2")
     end)
@@ -170,7 +236,7 @@ end)
 
 combatSection:addButton("Kill All (Murderer)", function()
     if getPlayerRole(localplayer) ~= "Murderer" then
-        Venyx:Notify("Error", "You are not the Murderer.", 5)
+        Venyx:Notify("Venyx", "You are not the Murderer.", 5)
         return
     end
 
@@ -181,14 +247,14 @@ combatSection:addButton("Kill All (Murderer)", function()
             hum:EquipTool(backpack:FindFirstChild("Knife"))
             task.wait(0.1)
         else
-            Venyx:Notify("Error", "You don't have the knife.", 5)
+            Venyx:Notify("Venyx", "You don't have the knife.", 5)
             return
         end
     end
-    
+
     local knife = localplayer.Character:FindFirstChild("Knife")
     if not knife or not knife:FindFirstChild("Stab") then
-        Venyx:Notify("Error", "Knife structure not found.", 5)
+        Venyx:Notify("Venyx", "Knife structure not found.", 5)
         return
     end
 
@@ -202,9 +268,9 @@ combatSection:addButton("Kill All (Murderer)", function()
             targetHRP.CFrame = localHRP.CFrame + localHRP.CFrame.LookVector * 1
         end
     end
-    
+
     task.wait(0.2)
-    
+
     pcall(function()
         knife.Stab:FireServer("Slash")
     end)
@@ -212,7 +278,7 @@ combatSection:addButton("Kill All (Murderer)", function()
     task.wait(0.5)
     for _, player in ipairs(Players:GetPlayers()) do
         if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-             player.Character.HumanoidRootPart.Anchored = false
+            player.Character.HumanoidRootPart.Anchored = false
         end
     end
 end)
@@ -223,5 +289,23 @@ automationSection:addToggle("Auto Collect Coins", false, function(value)
         Venyx:Notify("Automation", "Coin collection enabled.", 3)
     else
         Venyx:Notify("Automation", "Coin collection disabled.", 3)
+    end
+end)
+
+visualsSection:addToggle("Player ESP", false, function(value)
+    espEnabled = value
+    if value then
+        Venyx:Notify("Visuals", "ESP enabled.", 3)
+        for _, player in ipairs(Players:GetPlayers()) do
+            updatePlayerESP(player)
+        end
+    else
+        Venyx:Notify("Visuals", "ESP disabled.", 3)
+        for player, highlight in pairs(espHighlights) do
+            if highlight then
+                highlight:Destroy()
+            end
+        end
+        espHighlights = {}
     end
 end)
