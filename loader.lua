@@ -1942,6 +1942,7 @@ function library.Libraries.Theme.set(instance, theme, color3)
     instance:setTheme(theme, color3)
 end
 
+
 function library.new(title)
     local self = setmetatable({
         title = title or "Venyx",
@@ -2069,7 +2070,45 @@ shared.Venyx.uninject = function()
     end
 end
 
-shared.Venyx.window = library.new("Venyx")
-shared.venyx = shared.Venyx.window
+local Venyx = library.new("Venyx")
+
+local FloatingButton = utility:Create("TextButton", {
+    Name = "FloatingButton",
+    Parent = Venyx.container,
+    Size = UDim2.new(0, 45, 0, 45),
+    Position = UDim2.new(0.1, 0, 0.2, 0),
+    AnchorPoint = Vector2.new(0, 0.5),
+    BackgroundColor3 = Color3.fromRGB(32, 32, 32), -- Dark background matching the frame
+    Text = "",
+    BorderSizePixel = 0,
+    AutoButtonColor = false,
+    ZIndex = 100
+}, {
+    utility:Create("UICorner", {
+        CornerRadius = UDim.new(0.5, 0)
+    }),
+    utility:Create("UIStroke", {
+        Color = Color3.fromRGB(64, 64, 64), -- Subtle gray border
+        Transparency = 0.3,
+        Thickness = 1
+    }),
+    utility:Create("TextLabel", {
+        Name = "Text",
+        Size = UDim2.new(1, 0, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundTransparency = 1,
+        Text = "V",
+        TextColor3 = Color3.fromRGB(255, 255, 255), -- White text
+        TextScaled = true,
+        Font = Enum.Font.GothamBold, -- Clean, modern font
+        ZIndex = 101
+    })
+})
+
+FloatingButton.Activated:Connect(function()
+    Venyx.container.Main.Visible = not Venyx.container.Main.Visible
+end)
+
+utility:DraggingEnabled(FloatingButton, FloatingButton)
 
 return library
