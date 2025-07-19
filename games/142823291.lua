@@ -1,4 +1,4 @@
-local Venyx = shared.Venyx and shared.Venyx.window
+local Venyx = shared.Venyx.instance
 
 if not Venyx then
     return
