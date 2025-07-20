@@ -4,6 +4,10 @@ if not Venyx then
     return
 end
 
+
+
+
+
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -22,6 +26,8 @@ local offsetToPingMult = 1.05
 local utility = {}
 local themes = {}
 local objects = {}
+
+
 
 function utility:DraggingEnabled(frame, parent)
     parent = parent or frame
@@ -289,7 +295,41 @@ local combatSection = mm2Tab:addSection("Combat")
 local automationSection = mm2Tab:addSection("Automation")
 local visualsSection = mm2Tab:addSection("Visuals")
 
-combatSection:addButton("Shoot", function()
+local Shoot = utility:Create("TextButton", {
+    Name = "Shoot",
+    Parent = Venyx.container,
+    Size = UDim2.new(0, 45, 0, 45),
+    Position = UDim2.new(0.8, 0, 0.2, 0),
+    AnchorPoint = Vector2.new(0, 0.5),
+    BackgroundColor3 = Color3.fromRGB(32, 32, 32), -- Dark background matching the frame
+    Text = "",
+    Visible = false,
+    BorderSizePixel = 0,
+    AutoButtonColor = false,
+    ZIndex = 100
+}, {
+    utility:Create("UICorner", {
+        CornerRadius = UDim.new(0, 6)
+    }),
+    utility:Create("UIStroke", {
+        Color = Color3.fromRGB(64, 64, 64), -- Subtle gray border
+        Transparency = 0.3,
+        Thickness = 2
+    }),
+    utility:Create("TextLabel", {
+        Name = "Text",
+        Size = UDim2.new(1, 0, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundTransparency = 1,
+        Text = "Shoot",
+        TextColor3 = Color3.fromRGB(255, 255, 255), -- White text
+        TextScaled = true,
+        Font = Enum.Font.GothamBold, -- Clean, modern font
+        ZIndex = 101
+    })
+})
+
+Shoot.Activated:Connect(function()
     local target
     local localRole = getPlayerRole(localplayer)
 
@@ -336,6 +376,10 @@ combatSection:addButton("Shoot", function()
     pcall(function()
         gun.KnifeLocal.CreateBeam.RemoteFunction:InvokeServer(1, predictedPosition, "AH2")
     end)
+end)
+
+combatSection:addButton("Shoot", function()
+    Shoot.Visible = not Shoot.Visible
 end)
 
 combatSection:addButton("Kill All (Murderer)", function()
